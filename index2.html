@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Temanin Nesya 10 Tahun ke Depan!</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        width: 95%;
+        max-width: 980px;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        animation: fadeIn 1s ease;
+      }
+
+      h1 {
+        text-align: center;
+        color: #2b6cb0;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        text-align: center;
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 18px;
+      }
+
+      .playground {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .items,
+      .dropzone {
+        flex: 1 1 320px;
+        background: #f1f7ff;
+        padding: 20px;
+        border-radius: 15px;
+        min-height: 320px;
+      }
+
+      .item {
+        background: #dbeafe;
+        padding: 10px 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+        cursor: grab;
+        font-weight: 600;
+        transition: 0.15s;
+        user-select: none;
+      }
+
+      .item:hover {
+        transform: translateX(6px);
+      }
+
+      .dropzone {
+        border: 3px dashed #60a5fa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+        padding-top: 12px;
+        gap: 8px;
+      }
+
+      .tag {
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        width: calc(100% - 24px);
+        text-align: left;
+        font-weight: 500;
+      }
+
+      .result-box {
+        margin-top: 18px;
+        background: #e0f2fe;
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 17px;
+        display: none;
+      }
+
+      .controls {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      button {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: none;
+        background: #3b82f6;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button.secondary {
+        background: #94a3b8;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      small.hint {
+        color: #475569;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Temanin Nesya 10 Tahun ke Depan! 🚀</h1>
+      <p class="subtitle">
+        Drag item ke kotak kanan untuk bantu Nesya membangun masa depannya.
+        Gabungkan item-item tertentu untuk memunculkan takdir besarnya —
+        sekarang lebih banyak pilihan dan hasilnya juga lebih deskriptif. (Ada
+        jokes kecil biar nggak tegang.)
+      </p>
+
+      <div class="playground">
+        <div class="items" id="items">
+          <!-- data-value uses underscore-style keys (no spaces) to avoid matching issues -->
+          <div class="item" draggable="true" data-value="belajar">
+            Belajar 📚
+          </div>
+          <div class="item" draggable="true" data-value="giat">Giat 💪</div>
+          <div class="item" draggable="true" data-value="data_sains">
+            Data Sains 🔍
+          </div>
+          <div class="item" draggable="true" data-value="inovasi_pendidikan">
+            Inovasi (AI Pendidikan) 🤖
+          </div>
+          <div class="item" draggable="true" data-value="kebaikan">
+            Kebaikan & Bermanfaat ❤️
+          </div>
+          <div class="item" draggable="true" data-value="keluarga">
+            Bantu Keluarga 👪
+          </div>
+          <div class="item" draggable="true" data-value="eksperimen">
+            Eksperimen 🔬
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          Taruh item di sini ↓
+          <div style="font-size: 12px; margin-top: 8px" class="hint">
+            (Klik Reset untuk mulai ulang)
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="resetBtn" class="secondary">🔁 Reset</button>
+        <button id="finishBtn">✨ Selesaikan & Lihat Masa Depan</button>
+      </div>
+
+      <div class="result-box" id="result"></div>
+    </div>
+
+    <script>
+      // --- Setup ---
+      const dropzone = document.getElementById("dropzone");
+      const resultBox = document.getElementById("result");
+      const resetBtn = document.getElementById("resetBtn");
+      const finishBtn = document.getElementById("finishBtn");
+
+      // store collected keys (normalized, no spaces)
+      let collected = [];
+
+      // helper map: key -> friendly label
+      const LABELS = {
+        belajar: "Belajar",
+        giat: "Giat",
+        data_sains: "Data Sains",
+        inovasi_pendidikan: "Inovasi: AI Pendidikan",
+        kebaikan: "Kebaikan & Bermanfaat",
+        keluarga: "Bantu Keluarga",
+        eksperimen: "Eksperimen",
+      };
+
+      // attach dragstart to all items (delegation would also work)
+      document.querySelectorAll(".item").forEach((item) => {
+        item.addEventListener("dragstart", (e) => {
+          // store data with a single mime-type 'text/plain'
+          e.dataTransfer.setData("text/plain", item.dataset.value);
+        });
+
+        // also allow clicking an item to add (for mobile users)
+        item.addEventListener("click", () => addTag(item.dataset.value));
+      });
+
+      function addTag(key) {
+        // normalize key (already normalized but keep safe)
+        const k = (key || "").trim();
+        if (!k) return;
+        collected.push(k);
+        renderTags();
+        // show immediate small feedback
+        flashHint(`✔ ${LABELS[k] || k} ditambahkan!`);
+      }
+
+      function renderTags() {
+        // clear existing human-readable tags inside dropzone (but keep the header text)
+        // We'll remove elements with class "tag" then re-add from collected
+        const existing = Array.from(dropzone.querySelectorAll(".tag"));
+        existing.forEach((n) => n.remove());
+
+        // show each collected as a tag (in order)
+        collected.forEach((k, idx) => {
+          const d = document.createElement("div");
+          d.className = "tag";
+          d.textContent = `${idx + 1}. ${LABELS[k] || k}`;
+          dropzone.appendChild(d);
+        });
+      }
+
+      // dragover & drop handlers
+      dropzone.addEventListener("dragover", (e) => e.preventDefault());
+
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        // try multiple mime types for compatibility
+        let value =
+          e.dataTransfer.getData("text/plain") ||
+          e.dataTransfer.getData("text");
+        if (!value) return;
+        // normalize: replace spaces with underscore and trim, though items already use underscores
+        value = value.trim().replace(/\s+/g, "_");
+        addTag(value);
+      });
+
+      // small floating hint (temporary message)
+      function flashHint(msg) {
+        resultBox.style.display = "block";
+        resultBox.innerHTML = `<em>${msg}</em>`;
+        setTimeout(() => {
+          resultBox.style.display = "none";
+        }, 900);
+      }
+
+      // Reset
+      resetBtn.addEventListener("click", () => {
+        collected = [];
+        renderTags();
+        resultBox.style.display = "none";
+      });
+
+      // Evaluate and show story/result — this aggregates rules and displays a final narrative
+      finishBtn.addEventListener("click", () => {
+        const set = new Set(collected);
+        const messages = [];
+
+        // Single-item highlights (if user added only one or we want to emphasize)
+        if (set.has("belajar") && set.size === 1) {
+          messages.push(
+            "📚 <b>Belajar</b> — Pondasi. Pelan-pelan tapi pasti, ilmu akan menumpuk seperti koleksi stiker."
+          );
+        }
+        if (set.has("giat") && set.size === 1) {
+          messages.push(
+            "💪 <b>Giat</b> — Energi penting. Semangatmu seperti powerbank yang tak pernah habis (kecuali lupa ngecas)."
+          );
+        }
+        if (set.has("data_sains") && set.size === 1) {
+          messages.push(
+            '🔍 <b>Data Sains</b> — Kamu fokus pada analisis dan insight. Dataset pun akan bertanya: "Boleh saya ikut belajar juga?"'
+          );
+        }
+        if (set.has("inovasi_pendidikan") && set.size === 1) {
+          messages.push(
+            "🤖 <b>Inovasi (AI Pendidikan)</b> — Ide besar; mengubah cara belajar agar lebih manusiawi. (AI yang baik, bukan AI yang suka ngambek.)"
+          );
+        }
+        if (set.has("kebaikan") && set.size === 1) {
+          messages.push(
+            "❤️ <b>Kebaikan</b> — Inti dari semua pencapaian. Nggak ada yang lebih keren dari jadi berguna bagi sesama."
+          );
+        }
+        if (set.has("keluarga") && set.size === 1) {
+          messages.push(
+            "👪 <b>Bantu Keluarga</b> — Tujuan mulia. Meringankan beban orang tua adalah hadiah terindah."
+          );
+        }
+
+        // Pair/combo rules (common meaningful combos)
+        if (set.has("belajar") && set.has("giat")) {
+          messages.push(
+            "🎓 <b>Belajar + Giat</b> → Potensi tinggi: peluang beasiswa S2 ke luar negeri. (Tip: jangan tidur di ruang ujian.)"
+          );
+        }
+
+        if (set.has("belajar") && set.has("data_sains")) {
+          messages.push(
+            "📈 <b>Belajar + Data Sains</b> → Jadi Data Scientist yang kompeten; dataset akan takut salah klasifikasi."
+          );
+        }
+
+        if (set.has("inovasi_pendidikan") && set.has("data_sains")) {
+          messages.push(
+            "🤝 <b>Inovasi (AI Pendidikan) + Data Sains</b> → Kamu membuat AI pengajar yang adaptif; belajar jadi lebih personal dan ramah. (AI yang kasih semangat, bukan nilai.)"
+          );
+        }
+
+        if (set.has("data_sains") && set.has("kebaikan")) {
+          messages.push(
+            "🌱 <b>Data Sains + Kebaikan</b> → Solusi yang kamu ciptakan tidak hanya efisien, tapi juga etis dan berguna bagi masyarakat."
+          );
+        }
+
+        if (set.has("kebaikan") && set.has("keluarga")) {
+          messages.push(
+            "🏠 <b>Kebaikan + Bantu Keluarga</b> → Dampak langsung: rumah lebih hangat, hati lebih ringan."
+          );
+        }
+
+        if (
+          set.has("belajar") &&
+          set.has("inovasi_pendidikan") &&
+          set.has("data_sains")
+        ) {
+          messages.push(
+            "🌍⚡💡 <b>Trio Hebat</b> — Belajar + Data Sains + Inovasi Pendidikan = Kamu menjadi tokoh yang membawa perubahan pendidikan di Indonesia dengan teknologi yang humanis. Bangga!"
+          );
+        }
+
+        if (set.has("eksperimen") && set.has("inovasi_pendidikan")) {
+          messages.push(
+            "🔬🤖 <b>Eksperimen + Inovasi</b> → Prototyping cepat: AI-mu diuji, diperbaiki, dan akhirnya membantu banyak murid."
+          );
+        }
+
+        if (set.has("storytelling") && set.has("inovasi_pendidikan")) {
+          messages.push(
+            "✍️🤖 <b>Storytelling + Inovasi</b> → Kamu bisa menyampaikan ide kompleks jadi cerita yang mudah dimengerti—kunci adopsi teknologi yang sukses."
+          );
+        }
+
+        // If nothing matched (edge case), show gentle prompt
+        if (messages.length === 0) {
+          if (set.size === 0) {
+            messages.push(
+              "🤔 Kamu belum menaruh item apapun. Ayo coba drag 1–3 item!"
+            );
+          } else {
+            // for random or new combos, produce a synthesized encouraging message
+            const names = Array.from(set)
+              .map((k) => LABELS[k] || k)
+              .join(", ");
+            messages.push(
+              `✨ Kombinasi unik terdeteksi: ${names}. Setiap langkah kecil mengarah pada masa depan — terus eksplorasi!`
+            );
+          }
+        }
+
+        // final narrative: combine messages into a friendly paragraph
+        const finalHtml =
+          messages
+            .map((m) => `<div style="margin-bottom:10px">${m}</div>`)
+            .join("") +
+          `<hr style="border:none;border-top:1px dashed #9fb8e4;margin:12px 0">` +
+          `<div><b></b> 😄</div>`;
+
+        resultBox.style.display = "block";
+        resultBox.innerHTML = finalHtml;
+
+        // scroll to result for convenience
+        resultBox.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+
+      // make dropzone keyboard accessible: allow paste of keys
+      dropzone.addEventListener("click", () =>
+        flashHint(
+          "Coba drag item atau klik item di kiri (berguna untuk mobile)."
+        )
+      );
+
+      // initial tiny hint
+      setTimeout(() => {
+        flashHint("Mulai drag item ke kotak. Klik item juga berfungsi.");
+      }, 600);
+    </script>
+  </body>
+</html>
